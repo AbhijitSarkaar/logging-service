@@ -1,22 +1,22 @@
 package com.service.log_service.service.impl;
 
+import com.service.log_service.payload.APIResponse;
 import com.service.log_service.service.S3Service;
+import com.service.log_service.util.S3Utils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
 
-import java.io.File;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 @Service
 public class S3ServiceImpl implements S3Service {
@@ -30,6 +30,9 @@ public class S3ServiceImpl implements S3Service {
     @Value("${aws.s3.bucket_name}")
     String bucketName;
 
+    @Autowired
+    S3Utils s3Utils;
+
     @Override
     public List<String> getBuckets() {
        ListBucketsResponse response = s3Client.listBuckets();
@@ -42,26 +45,25 @@ public class S3ServiceImpl implements S3Service {
     }
 
     @Override
-    public String upload(MultipartFile file) {
-        System.out.println(file.getOriginalFilename());
-
+    public APIResponse upload(MultipartFile file) {
         try {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd-hh-mm-ss");
+            String time = formatter.format(LocalDateTime.now());
+            String key = time + "-" + file.getOriginalFilename();
 
             PutObjectRequest request = PutObjectRequest.builder()
                     .bucket(bucketName)
-                    .key(file.getOriginalFilename())
+                    .key(key)
+                    .contentType(file.getContentType())
                     .build();
 
-            s3Client.putObject(request, RequestBody.fromBytes("/Users/abhijitsarkar/Desktop/image.jpg".getBytes()));
-
-            String s3UploadLink = "https://" + bucketName + ".s3.ap-south-1.amazonaws.com"+ file.getOriginalFilename();
-            System.out.println(s3UploadLink);
-            return s3UploadLink;
-
-
-        } catch (RuntimeException e) {
+            s3Client.putObject(request, RequestBody.fromBytes(file.getBytes()));
+            return new APIResponse(
+                    "File uploaded",
+                    s3Utils.getS3UploadUrl(bucketName, key)
+            );
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
     }
 }
