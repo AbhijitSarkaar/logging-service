@@ -1,20 +1,8 @@
 package com.service.log_service.config;
 
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.web.filter.CommonsRequestLoggingFilter;
 
-@Configuration
 public class LogConfig {
-
-    @Bean
-    public CommonsRequestLoggingFilter logFilter() {
-        CommonsRequestLoggingFilter filter = new CommonsRequestLoggingFilter();
-
-        filter.setIncludeQueryString(true);
-        filter.setIncludeHeaders(true);
-
-        return filter;
-    }
-
+    public static String REQUEST_URI="request_uri";
+    public static String REQUEST_METHOD="request_method";
+    public static String REQUEST_QUERY_STRINGS="query_string";
 }
