@@ -15,4 +15,7 @@ public class ThreadConfig {
 
     @Value("${server.tomcat.accept-count}")
     private String acceptCount;
+
+    @Value("${spring.datasource.url}")
+    private String dataSourceUrl;
 }

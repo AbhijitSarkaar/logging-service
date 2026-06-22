@@ -5,6 +5,7 @@ target/
 !**/src/test/**/target/
 
 application.yml
+application-*.yml
 .gitattributes
 
 ### STS ###
